@@ -14,6 +14,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ==========================================================================
+       Mobile Hamburger Menu
+       ========================================================================== */
+    const mobileMenuBtn = document.querySelector('.mobile-menu');
+    const navLinks = document.querySelector('.nav-links');
+    const navCta = document.querySelector('.nav-cta');
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('nav-active');
+            navCta.classList.toggle('nav-active');
+        });
+        
+        // Close menu when a link is clicked
+        const navItems = document.querySelectorAll('.nav-links a, .nav-cta a');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navLinks.classList.remove('nav-active');
+                navCta.classList.remove('nav-active');
+            });
+        });
+    }
+
+    /* ==========================================================================
        Animated Counters (Facts & Figures)
        ========================================================================== */
     const counters = document.querySelectorAll('.counter');
