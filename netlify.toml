@@ -1,0 +1,11 @@
+[build]
+  # Directory to deploy (the root folder where index.html is located)
+  publish = "."
+  # Directory where Netlify should look for serverless functions
+  functions = "api"
+
+[[redirects]]
+  # Redirect any requests to /api/* to the underlying Netlify functions endpoint
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
