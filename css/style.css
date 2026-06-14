@@ -567,6 +567,7 @@ img {
     border-radius: 8px;
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(0,0,0,0.05);
+    scroll-margin-top: 100px;
 }
 
 .form-group {
