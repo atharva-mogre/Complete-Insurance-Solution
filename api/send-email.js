@@ -1,39 +1,46 @@
 const nodemailer = require('nodemailer');
 
-export default async function handler(req, res) {
+exports.handler = async (event, context) => {
     // Only allow POST requests
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            body: JSON.stringify({ error: 'Method Not Allowed' })
+        };
     }
-
-    const { Type, Name, Email, Phone, InsuranceType, Rating, Message } = req.body;
-
-    // Basic validation
-    if (!Name || !Email || !Message) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Determine content based on submission type
-    const isReview = Type === 'Review' || Rating;
-    const emailSubject = isReview 
-        ? `New ${Rating}-Star Review from ${Name}` 
-        : `New Insurance Quote Request from ${Name}`;
-
-    const emailText = isReview
-        ? `You have received a new customer review on the Complete Insurance Solution website.\n\n` +
-          `Details:\n----------------------------------\n` +
-          `Name: ${Name}\nEmail: ${Email}\nRating: ${Rating} out of 5 Stars\n\n` +
-          `Review:\n----------------------------------\n${Message}`
-        : `You have received a new quote request from the Complete Insurance Solution website.\n\n` +
-          `Details:\n----------------------------------\n` +
-          `Name: ${Name}\nEmail: ${Email}\nPhone: ${Phone || 'Not provided'}\nInsurance Type: ${InsuranceType || 'Not specified'}\n\n` +
-          `Message:\n----------------------------------\n${Message}`;
 
     try {
+        const body = JSON.parse(event.body);
+        const { Type, Name, Email, Phone, InsuranceType, Rating, Message } = body;
+
+        // Basic validation
+        if (!Name || !Email || !Message) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Missing required fields' })
+            };
+        }
+
+        // Determine content based on submission type
+        const isReview = Type === 'Review' || Rating;
+        const emailSubject = isReview 
+            ? `New ${Rating}-Star Review from ${Name}` 
+            : `New Insurance Quote Request from ${Name}`;
+
+        const emailText = isReview
+            ? `You have received a new customer review on the Complete Insurance Solution website.\n\n` +
+              `Details:\n----------------------------------\n` +
+              `Name: ${Name}\nEmail: ${Email}\nRating: ${Rating} out of 5 Stars\n\n` +
+              `Review:\n----------------------------------\n${Message}`
+            : `You have received a new quote request from the Complete Insurance Solution website.\n\n` +
+              `Details:\n----------------------------------\n` +
+              `Name: ${Name}\nEmail: ${Email}\nPhone: ${Phone || 'Not provided'}\nInsurance Type: ${InsuranceType || 'Not specified'}\n\n` +
+              `Message:\n----------------------------------\n${Message}`;
+
         // Create reusable transporter object using the default SMTP transport
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: process.env.SMTP_PORT || 587,
+            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
             secure: false, // true for 465, false for other ports
             auth: {
                 user: process.env.EMAIL_USER, 
@@ -51,10 +58,17 @@ export default async function handler(req, res) {
 
         // Send mail
         await transporter.sendMail(mailOptions);
-        return res.status(200).json({ success: true, message: 'Email sent successfully!' });
+        
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ success: true, message: 'Email sent successfully!' })
+        };
 
     } catch (error) {
         console.error('Email delivery failed:', error);
-        return res.status(500).json({ error: 'Failed to send email. Please try again later.' });
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to send email. Please try again later.' })
+        };
     }
-}
+};
